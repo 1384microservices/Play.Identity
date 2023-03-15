@@ -11,6 +11,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using Play.Common.Configuration;
 using Play.Common.Settings;
 using Play.Identity.Service.Entities;
+using Play.Identity.Service.Settings;
 
 namespace Play.Identity.Service
 {
@@ -28,18 +29,30 @@ namespace Play.Identity.Service
         {
             BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
 
-            var serviceSettings = Configuration.GetServiceSettings();
-            var mongoDbSettings = Configuration.GetMongoDbSettings();
+            var serviceSettings = Configuration.GetSection<ServiceSettings>();
+            var mongoDbSettings = Configuration.GetSection<MongoDbSettings>();
+            var identityServerSettings = new IdentityServerSettings();
+
             services
                 .AddDefaultIdentity<ApplicationUser>()
                 .AddRoles<ApplicationRole>()
                 .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name);
 
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
-            });
+            services.AddIdentityServer()
+                .AddAspNetIdentity<ApplicationUser>()
+                .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
+                .AddInMemoryClients(identityServerSettings.Clients)
+                .AddInMemoryIdentityResources(identityServerSettings.Resources)
+                ;
+
+            services
+                .AddControllers();
+
+            services
+                .AddSwaggerGen(c =>
+                {
+                    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,13 +66,10 @@ namespace Play.Identity.Service
             }
 
             app.UseHttpsRedirection();
-
             app.UseStaticFiles();
-
             app.UseRouting();
-
+            app.UseIdentityServer();
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
