@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Play.Identity.Service.Dtos;
@@ -11,6 +12,7 @@ namespace Play.Identity.Service.Controllers;
 
 [ApiController]
 [Route("users")]
+[Authorize(Roles = Roles.Admin)]
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -25,7 +27,7 @@ public class UsersController : ControllerBase
     {
         var users = _userManager.Users.ToList();
         var dtos = users.Select(u => u.AsDto());
-        return Ok(users);
+        return Ok(dtos);
     }
 
 

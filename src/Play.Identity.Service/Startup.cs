@@ -10,71 +10,85 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using Play.Common.Configuration;
 using Play.Common.Settings;
+using Play.Common.Identity;
 using Play.Identity.Service.Entities;
+using Play.Identity.Service.HostedServices;
 using Play.Identity.Service.Settings;
 
-namespace Play.Identity.Service
+namespace Play.Identity.Service;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IConfiguration configuration)
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        Configuration = configuration;
+    }
 
-        public IConfiguration Configuration { get; }
+    public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
 
-            var serviceSettings = Configuration.GetSection<ServiceSettings>();
-            var mongoDbSettings = Configuration.GetSection<MongoDbSettings>();
-            var identityServerSettings = new IdentityServerSettings();
+        var serviceSettings = Configuration.GetSection<ServiceSettings>();
+        var mongoDbSettings = Configuration.GetSection<MongoDbSettings>();
+        var identityServerSettings = Configuration.GetSection<IdentityServerSettings>();
 
-            services
-                .AddDefaultIdentity<ApplicationUser>()
-                .AddRoles<ApplicationRole>()
-                .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name);
+        services
+            .Configure<IdentitySettings>(Configuration.GetSection(nameof(IdentitySettings)))
+            .AddDefaultIdentity<ApplicationUser>()
+            .AddRoles<ApplicationRole>()
+            .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name)
+            ;
 
-            services.AddIdentityServer()
-                .AddAspNetIdentity<ApplicationUser>()
-                .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
-                .AddInMemoryClients(identityServerSettings.Clients)
-                .AddInMemoryIdentityResources(identityServerSettings.Resources)
-                ;
-
-            services
-                .AddControllers();
-
-            services
-                .AddSwaggerGen(c =>
-                {
-                    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
-                });
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
+        services
+            .AddIdentityServer(opt =>
             {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Play.Identity.Service v1"));
-            }
+                opt.Events.RaiseSuccessEvents = true;
+                opt.Events.RaiseFailureEvents = true;
+                opt.Events.RaiseErrorEvents = true;
+            })
+            .AddAspNetIdentity<ApplicationUser>()
+            .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
+            .AddInMemoryApiResources(identityServerSettings.ApiResources)
+            .AddInMemoryClients(identityServerSettings.Clients)
+            .AddInMemoryIdentityResources(identityServerSettings.Resources)
+            ;
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseRouting();
-            app.UseIdentityServer();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
+        services.AddJwtBearerAuthentication();
+
+        services.AddControllers();
+
+        services.AddHostedService<IdentitySeedHostedService>();
+
+        services
+            .AddSwaggerGen(c =>
             {
-                endpoints.MapControllers();
-                endpoints.MapRazorPages();
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
             });
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Play.Identity.Service v1"));
         }
+
+        app.UseHttpsRedirection();
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseIdentityServer();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapRazorPages();
+        });
     }
 }
