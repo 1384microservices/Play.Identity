@@ -7,11 +7,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Play.Identity.Service.Dtos;
 using Play.Identity.Service.Entities;
+using static Duende.IdentityServer.IdentityServerConstants;
 
 namespace Play.Identity.Service.Controllers;
 
 [ApiController]
 [Route("users")]
+// [Authorize(Roles = Roles.Admin, Policy = LocalApi.PolicyName)]
 [Authorize(Roles = Roles.Admin)]
 public class UsersController : ControllerBase
 {

@@ -35,38 +35,35 @@ public class Startup
         var mongoDbSettings = Configuration.GetSection<MongoDbSettings>();
         var identityServerSettings = Configuration.GetSection<IdentityServerSettings>();
 
-        services
-            .Configure<IdentitySettings>(Configuration.GetSection(nameof(IdentitySettings)))
-            .AddDefaultIdentity<ApplicationUser>()
-            .AddRoles<ApplicationRole>()
-            .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name)
-            ;
+        services.Configure<IdentitySettings>(Configuration.GetSection(nameof(IdentitySettings)))
+        .AddDefaultIdentity<ApplicationUser>()
+        .AddRoles<ApplicationRole>()
+        .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name);
 
-        services
-            .AddIdentityServer(opt =>
-            {
-                opt.Events.RaiseSuccessEvents = true;
-                opt.Events.RaiseFailureEvents = true;
-                opt.Events.RaiseErrorEvents = true;
-            })
-            .AddAspNetIdentity<ApplicationUser>()
-            .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
-            .AddInMemoryApiResources(identityServerSettings.ApiResources)
-            .AddInMemoryClients(identityServerSettings.Clients)
-            .AddInMemoryIdentityResources(identityServerSettings.Resources)
-            ;
+        services.AddIdentityServer(opt =>
+        {
+            opt.Events.RaiseSuccessEvents = true;
+            opt.Events.RaiseFailureEvents = true;
+            opt.Events.RaiseErrorEvents = true;
+        })
+        .AddAspNetIdentity<ApplicationUser>()
+        .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
+        .AddInMemoryApiResources(identityServerSettings.ApiResources)
+        .AddInMemoryClients(identityServerSettings.Clients)
+        .AddInMemoryIdentityResources(identityServerSettings.Resources)
+        .AddDeveloperSigningCredential()
+        ;
 
-        services.AddJwtBearerAuthentication();
+        services.AddLocalApiAuthentication();
 
         services.AddControllers();
 
         services.AddHostedService<IdentitySeedHostedService>();
 
-        services
-            .AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
-            });
+        services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
+        });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -83,8 +80,8 @@ public class Startup
         app.UseStaticFiles();
         app.UseRouting();
         app.UseIdentityServer();
-        app.UseAuthentication();
         app.UseAuthorization();
+        // app.UseAuthentication();
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
