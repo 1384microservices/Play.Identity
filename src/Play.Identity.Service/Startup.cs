@@ -10,10 +10,10 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using Play.Common.Configuration;
 using Play.Common.Settings;
-using Play.Common.Identity;
 using Play.Identity.Service.Entities;
 using Play.Identity.Service.HostedServices;
 using Play.Identity.Service.Settings;
+using Microsoft.AspNetCore.Identity;
 
 namespace Play.Identity.Service;
 
@@ -35,10 +35,15 @@ public class Startup
         var mongoDbSettings = Configuration.GetSection<MongoDbSettings>();
         var identityServerSettings = Configuration.GetSection<IdentityServerSettings>();
 
-        services.Configure<IdentitySettings>(Configuration.GetSection(nameof(IdentitySettings)))
+        services
+        .Configure<IdentitySettings>(Configuration.GetSection(nameof(IdentitySettings)))
         .AddDefaultIdentity<ApplicationUser>()
         .AddRoles<ApplicationRole>()
-        .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name);
+        .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name)
+        ;
+
+        services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>>();
+
 
         services.AddIdentityServer(opt =>
         {
@@ -74,6 +79,12 @@ public class Startup
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Play.Identity.Service v1"));
+            app.UseCors(opt =>
+            {
+                opt.WithOrigins(Configuration["AllowedOrigin"]);
+                opt.AllowAnyHeader();
+                opt.AllowAnyMethod();
+            });
         }
 
         app.UseHttpsRedirection();
@@ -81,7 +92,6 @@ public class Startup
         app.UseRouting();
         app.UseIdentityServer();
         app.UseAuthorization();
-        // app.UseAuthentication();
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();

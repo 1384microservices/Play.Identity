@@ -13,44 +13,43 @@ namespace Play.Identity.Service.Controllers;
 
 [ApiController]
 [Route("users")]
-// [Authorize(Roles = Roles.Admin, Policy = LocalApi.PolicyName)]
-[Authorize(Roles = Roles.Admin)]
+[Authorize(Roles = Roles.Admin, Policy = LocalApi.PolicyName)]
 public class UsersController : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly UserManager<ApplicationUser> userManager;
 
     public UsersController(UserManager<ApplicationUser> userManager)
     {
-        _userManager = userManager;
+        this.userManager = userManager;
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<UserDto>> Get()
     {
-        var users = _userManager.Users.ToList();
-        var dtos = users.Select(u => u.AsDto());
-        return Ok(dtos);
+        var theClaim = User.Claims;
+
+        var users = userManager.Users.ToList().Select(u => u.AsDto());
+        return Ok(users);
     }
 
 
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetByIdAsync(Guid id)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
-        if (user is null)
+        var user = await userManager.FindByIdAsync(id.ToString());
+        if (user == null)
         {
             return NotFound();
         }
 
-        var dto = user.AsDto();
-        return Ok(dto);
+        return Ok(user.AsDto());
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> PutAsync(Guid id, UpdateUserDto dto)
+    public async Task<IActionResult> PutAsync(Guid id, UpdateUserDto dto)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
-        if (user is null)
+        var user = await userManager.FindByIdAsync(id.ToString());
+        if (user == null)
         {
             return NotFound();
         }
@@ -59,21 +58,21 @@ public class UsersController : ControllerBase
         user.UserName = dto.Email;
         user.Gil = dto.Gil;
 
-        await _userManager.UpdateAsync(user);
+        await userManager.UpdateAsync(user);
 
         return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteAsync(Guid id)
+    public async Task<IActionResult> DeleteAsync(Guid id)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
-        if (user is null)
+        var user = await userManager.FindByIdAsync(id.ToString());
+        if (user == null)
         {
             return NotFound();
         }
 
-        await _userManager.DeleteAsync(user);
+        await userManager.DeleteAsync(user);
         return NoContent();
     }
 }

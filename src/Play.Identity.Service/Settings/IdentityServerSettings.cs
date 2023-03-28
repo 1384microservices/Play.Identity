@@ -9,8 +9,10 @@ public class IdentityServerSettings
     public IReadOnlyCollection<ApiResource> ApiResources { get; init; }
 
     public IReadOnlyCollection<Client> Clients { get; init; }
+
     public IReadOnlyCollection<IdentityResource> Resources { get; init; } = new IdentityResource[] {
         new IdentityResources.OpenId(),
-        new IdentityResources.Profile()
+        new IdentityResources.Profile(),
+        new IdentityResource("roles", new[] {"role"})
     };
 }
