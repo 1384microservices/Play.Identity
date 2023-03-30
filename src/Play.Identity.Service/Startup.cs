@@ -14,6 +14,9 @@ using Play.Identity.Service.Entities;
 using Play.Identity.Service.HostedServices;
 using Play.Identity.Service.Settings;
 using Microsoft.AspNetCore.Identity;
+using Play.Common.MassTransit;
+using GreenPipes;
+using Play.Identity.Service.Exceptions;
 
 namespace Play.Identity.Service;
 
@@ -43,7 +46,12 @@ public class Startup
         ;
 
         services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>>();
-
+        services.AddMassTransitWithRabbitMQ(retryConfigurator =>
+        {
+            retryConfigurator.Interval(3, TimeSpan.FromSeconds(5));
+            retryConfigurator.Ignore<InsufficientFundsException>();
+            retryConfigurator.Ignore<UnknownUserException>();
+        });
 
         services.AddIdentityServer(opt =>
         {
