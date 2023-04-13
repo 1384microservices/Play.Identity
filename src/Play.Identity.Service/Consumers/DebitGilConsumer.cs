@@ -36,7 +36,7 @@ public class DebitGilConsumer : IConsumer<DebitGil>
 
         user.Gil -= message.Gil;
 
-        if (user.Gil <= 0)
+        if (user.Gil < 0)
         {
             throw new InsufficientFundsException(message.UserId, message.Gil);
         }
