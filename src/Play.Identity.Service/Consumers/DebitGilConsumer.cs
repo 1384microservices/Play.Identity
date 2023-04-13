@@ -21,20 +21,16 @@ public class DebitGilConsumer : IConsumer<DebitGil>
         var message = context.Message;
 
         var user = await userManager.FindByIdAsync(message.UserId.ToString());
+        
         if (user == null)
-        {
             throw new UnknownUserException(message.UserId);
-        }
 
         user.Gil -= message.Gil;
 
-        if (user.Gil == 0)
-        {
+        if (user.Gil <= 0)
             throw new InsufficientFundsException(message.UserId, message.Gil);
-        }
 
         await userManager.UpdateAsync(user);
-
         await context.Publish(new GilDebited(message.CorrelationId));
     }
 }
