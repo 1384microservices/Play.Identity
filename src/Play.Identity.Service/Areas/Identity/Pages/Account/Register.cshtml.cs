@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -18,6 +19,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Play.Identity.Contracts;
 using Play.Identity.Service.Entities;
 using Play.Identity.Service.Settings;
 
@@ -25,8 +27,6 @@ namespace Play.Identity.Service.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private const decimal StartingGil = 100;
-
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserStore<ApplicationUser> _userStore;
@@ -34,6 +34,7 @@ namespace Play.Identity.Service.Areas.Identity.Pages.Account
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
         private readonly IdentitySettings _identitySettings;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
@@ -41,7 +42,9 @@ namespace Play.Identity.Service.Areas.Identity.Pages.Account
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-            IOptions<IdentitySettings> identitySettingsOptions)
+            IOptions<IdentitySettings> identitySettingsOptions,
+            IPublishEndpoint publishEndpoint
+            )
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -50,6 +53,7 @@ namespace Play.Identity.Service.Areas.Identity.Pages.Account
             _logger = logger;
             _emailSender = emailSender;
             _identitySettings = identitySettingsOptions.Value;
+            _publishEndpoint = publishEndpoint;
         }
 
         /// <summary>
@@ -133,6 +137,8 @@ namespace Play.Identity.Service.Areas.Identity.Pages.Account
 
                     await _userManager.AddToRoleAsync(user, Roles.Player);
                     _logger.LogInformation($"User added to the {Roles.Player} role.");
+
+                    await _publishEndpoint.Publish(new UserUpdated(user.Id, user.Email, user.Gil));
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
