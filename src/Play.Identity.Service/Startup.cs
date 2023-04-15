@@ -17,6 +17,9 @@ using Microsoft.AspNetCore.Identity;
 using Play.Common.MassTransit;
 using GreenPipes;
 using Play.Identity.Service.Exceptions;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Reflection;
 
 namespace Play.Identity.Service;
 
@@ -58,6 +61,7 @@ public class Startup
             opt.Events.RaiseSuccessEvents = true;
             opt.Events.RaiseFailureEvents = true;
             opt.Events.RaiseErrorEvents = true;
+            opt.KeyManagement.KeyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         })
         .AddAspNetIdentity<ApplicationUser>()
         .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
@@ -96,10 +100,20 @@ public class Startup
         }
 
         app.UseHttpsRedirection();
+
         app.UseStaticFiles();
+
         app.UseRouting();
+
         app.UseIdentityServer();
+
         app.UseAuthorization();
+
+        app.UseCookiePolicy(new CookiePolicyOptions()
+        {
+            MinimumSameSitePolicy = SameSiteMode.Lax
+        });
+
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
