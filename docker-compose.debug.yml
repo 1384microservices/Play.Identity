@@ -1,0 +1,15 @@
+version: '3.4'
+services:
+  playidentityservice:
+    image: playidentityservice
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - GITHUB_PAT
+    ports:
+      - 5002:5002
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
