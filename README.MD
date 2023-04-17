@@ -42,10 +42,10 @@ dotnet pack .\src\Play.Identity.Contracts\ --configuration Release -p:PackageVer
 dotnet nuget push ..\packages\Play.Identity.Contracts.$version.nupkg --api-key $gh_pat --source "github"
 ```
 
-### Dockerize
+### Build the docker image
 You can either build the service docker image using docker CLI or docker compose.
 
-#### Dockerize using docker CLI
+#### Build the docker image using docker CLI
 ```powershell
 # Change with your GitHub Personal Access Token
 $gh_pat="[type your PAT here]"
@@ -54,7 +54,7 @@ $serviceImage="play.identity:latest"
 docker build -t $serviceImage --build-args GITHUB_PAT=$gh_pat .
 ```
 
-#### Dockerize using docker-compose CLI
+#### Build the docker image using docker-compose CLI
 First you need to create a .env configuratin file within the service root that contains GitHub Personal Access Token.
 ```ini
 GITHUB_PAT=[your GitHub PAT]
@@ -63,6 +63,16 @@ Than, in the project root folder you need to build the image using docker-compos
 
 ```powershell
 docker-compose build
+```
+
+### Run the docker image
+#### Run the docker image using docker CLI
+```powershell
+docker run --rm -it --p 5002:5002 --name identityservice --
+```
+
+### Run the docker image using docker-compose
+```powershell
 ```
 
 [^wsl]:[You need to have WSL upfront](https://learn.microsoft.com/en-us/windows/wsl/)
