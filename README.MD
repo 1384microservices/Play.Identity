@@ -13,17 +13,99 @@ This service implements identity service REST API and register, login and logout
 * Install visual studio code: `winget install --id VisualStudioCode --source winget`
 
 ### Build development infrastructure.
-This service needs some infrastructure services like MongoDB to run. The infrastructure stack is already configured at [Play.Infrastructure](https://github.com/1384microservices/Play.Infrastructure) repository.
+This service needs infrastructure services like [MongoDB](https://www.mongodb.com) and [RabbitMQ](https://www.rabbitmq.com) upfront. The infrastructure stack is already configured in [Play.Infrastructure](https://github.com/1384microservices/Play.Infrastructure) repository.
 
 ### Clone source
-Create a project folder on your box. **D:\Projects\Play Economy** is a good idea but you can choose whatever fits your needs. For Windows boxes you have to issue this command in a powershell window: `New-Item -ItemType Directory -Path 'D:\Projects\Play Economy'`. Switch to this directory: `Set-Locatin -Path 'D:\Projects\Play Economy'`. 
+First, you must create a workspace folder and then switch to that workspace folder. **D:\Projects\Play.Economy** is a good idea but you should change to whatever fits your needs. Then, you must clone this repository to the workspace you've just created:
 
-Clone this repository to your box: `git clone https://github.com/1384microservices/Play.Catalog.git`.
+```powershell
+New-Item -ItemType Directory -Path 'D:\Projects\PlayEconomy'
+Set-Locatin -Path 'D:\Projects\PlayEconomy'
+git clone https://github.com/1384microservices/Play.Catalog.git
+```
+
+### Build service
+#### Build contracts
+```powershell
+Set-Location -Path '.\Play.Identity'
+dotnet build .\src\Play.Identity.Contracts\
+```
+
+#### Build services
+```powershell
+Set-Location -Path '.\Play.Identity'
+dotnet build .\src\Play.Identity.Service\
+```
+
+#### Build docker image
+##### Build docker image using docker CLI
+```powershell
+Set-Location -Path '.\Play.Identity'
+
+# Change with your GitHub Personal Access Token
+$github_pat="[type your PAT here]"
+
+$serviceImage="play.identity:latest"
+
+docker build -t $serviceImage --build-args GITHUB_PAT=$github_pat .
+```
+##### Build docker image using docker compose CLI
+To build docker image using docker CLI you need to specify github PAT within an environment variable file located at the root of this repository (near docker-compose.yaml file):
+
+```ini
+GITHUB_PAT=[your GitHub PAT]
+```
+
+```powershell
+Set-Location -Path '.\Play.Identity'
+docker-compose build
+```
+
+This process will create a docker image named `play.identity:latest` which you will use to start the service.
 
 ### Run service
-Within your service repository root folder (ie `D:\Projects\Play Economy`) start the service by issuing `dotnet run --Project .\src\Play.Catalog.Service\Play.Catalog.Service.csproj`
+#### Run service as dotnet process
+You need to have the [infrastructure services](https://github.com/1384microservices/Play.Infrastructure) started upfront.
 
-### Pack and publish contracts
+You need to provide configuration for MongoDB connection within [appsettings.json](src/Play.Identity.Service/appsettings.json). Check `MongoDbSettings` section.
+
+You need to provide configuration for RabbitMQ connection within [appsettings.json](src/Play.Identity.Service/appsettings.json). Check `RabbitMQSettings` section.
+
+The hostname for both MongoDB and RabbitMQ services is `localhost`. You can find the associated ports within [infrastructure services stack configuration file](https://github.com/1384microservices/Play.Infrastructure/blob/master/src/docker-compose.yml)
+
+```powershell
+Set-Locaton -Path '.\Play.Identity'
+dotnet run .\src\Play.Identity.Service
+```
+
+#### Run service as docker container
+You need to have the [infrastructure services](https://github.com/1384microservices/Play.Infrastructure) started upfront.
+
+You need to provide MongoDB and RabbitMQ configuration values within a `.env` file located near docker-compose file like this:
+```ini
+MongoDbSettings__Host=mongo
+MongoDbSettings__Port=27017
+RabbitMQSettings__Host=rabbitmq
+IdentitySettings__AdminUserPassword=[admin password]
+```
+
+You can find the hostname and associated ports for MongoDB and RabbitMQ within [infrastructure services stack configuration file](https://github.com/1384microservices/Play.Infrastructure/blob/master/src/docker-compose.yml).
+
+```powershell
+Set-Location -Path '.\Play.Identity'
+docker-compose run
+```
+
+Of course, you can start the service container using docker cli but keep in mind that this is very verbose and unpractical:
+
+```powershell
+# Change with your admin password
+$adminPassword="[PASSWORD HERE]"
+docker run --rm -it -p 5002:5002 --name play.identity -e MongoDbSettings__Host=mongo -e MongoDbSettings__Port=27017 -e RabbitMQSettings__Host=rabbitmq -e IdentitySettings__AdminUserPassword=$adminPassword --network src_default play.identity:latest
+```
+
+## Publish artifacts
+### Publish service contracts package
 ```powershell
 # Change with your package version.
 $version="1.0.2"
@@ -42,39 +124,7 @@ dotnet pack .\src\Play.Identity.Contracts\ --configuration Release -p:PackageVer
 dotnet nuget push ..\packages\Play.Identity.Contracts.$version.nupkg --api-key $gh_pat --source "github"
 ```
 
-### Build the docker image
-You can either build the service docker image using docker CLI or docker compose.
-
-#### Build the docker image using docker CLI
-```powershell
-# Change with your GitHub Personal Access Token
-$gh_pat="[type your PAT here]"
-
-$serviceImage="play.identity:latest"
-docker build -t $serviceImage --build-args GITHUB_PAT=$gh_pat .
-```
-
-#### Build the docker image using docker-compose CLI
-First you need to create a .env configuratin file within the service root that contains GitHub Personal Access Token.
-```ini
-GITHUB_PAT=[your GitHub PAT]
-```
-Than, in the project root folder you need to build the image using docker-compose CLI:
-
-```powershell
-docker-compose build
-```
-
-### Run the docker image
-#### Run the docker image using docker CLI
-```powershell
-# Change with your admin password
-$adminPassword="[PASSWORD HERE]"
-docker run --rm -it -p 5002:5002 --name play.identity -e MongoDbSettings__Host=mongo -e MongoDbSettings__Port=27017 -e RabbitMQSettings__Host=rabbitmq -e IdentitySettings__AdminUserPassword=$adminPassword --network src_default play.identity:latest
-```
-
-### Run the docker image using docker-compose
-```powershell
-```
+### Publish service container image
+TBD
 
 [^wsl]:[You need to have WSL upfront](https://learn.microsoft.com/en-us/windows/wsl/)
