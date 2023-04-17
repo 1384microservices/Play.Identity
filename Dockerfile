@@ -9,7 +9,9 @@ RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /
 USER appuser
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+
 ARG GITHUB_PAT
+
 COPY ["src/Play.Identity.Contracts/Play.Identity.Contracts.csproj", "src/Play.Identity.Contracts/"]
 COPY ["src/Play.Identity.Service/Play.Identity.Service.csproj", "src/Play.Identity.Service/"]
 COPY ["src/Play.Identity.Service/nuget.config", "src/Play.Identity.Service/"]
