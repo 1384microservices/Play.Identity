@@ -99,7 +99,7 @@ public class Startup
             });
         }
 
-        app.UseHttpsRedirection();
+        // app.UseHttpsRedirection();
 
         app.UseStaticFiles();
 

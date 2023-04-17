@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   playidentityservice:
-    image: playidentityservice
+    image: play.identity
     build:
       context: .
       dockerfile: ./Dockerfile

@@ -68,7 +68,9 @@ docker-compose build
 ### Run the docker image
 #### Run the docker image using docker CLI
 ```powershell
-docker run --rm -it --p 5002:5002 --name identityservice --
+# Change with your admin password
+$adminPassword="[PASSWORD HERE]"
+docker run --rm -it -p 5002:5002 --name play.identity -e MongoDbSettings__Host=mongo -e MongoDbSettings__Port=27017 -e RabbitMQSettings__Host=rabbitmq -e IdentitySettings__AdminUserPassword=$adminPassword --network src_default play.identity:latest
 ```
 
 ### Run the docker image using docker-compose
