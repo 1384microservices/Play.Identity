@@ -13,6 +13,7 @@ services:
     environment:
       - MongoDbSettings__Host
       - MongoDbSettings__Port
+      - MongoDbSettings__ConnectionString
       - RabbitMQSettings__Host
       - IdentitySettings__AdminUserPassword
     networks:
@@ -21,5 +22,5 @@ services:
 networks:
   pe-network:
     external: true
-    name: pe-network
+    # name: pe-network
     driver: bridge
