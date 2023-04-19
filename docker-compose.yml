@@ -11,10 +11,12 @@ services:
     ports:
       - 5002:5002
     environment:
+      - ServiceSettings__MessageBroker
       - MongoDbSettings__Host
       - MongoDbSettings__Port
       - MongoDbSettings__ConnectionString
       - RabbitMQSettings__Host
+      - ServiceBusSettings__ConnectionString
       - IdentitySettings__AdminUserPassword
     networks:
       - pe-network
