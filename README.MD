@@ -108,7 +108,7 @@ docker run --rm -it -p 5002:5002 --name play.identity -e MongoDbSettings__Host=m
 ### Publish service contracts package
 ```powershell
 # Change with your package version.
-$version="1.0.2"
+$version="1.0.3"
 
 $owner="1384microservices"
 
@@ -152,6 +152,9 @@ kubectl get pods -n $k8sNS
 # Query logs
 kubectl logs '[pod-name]' -n $k8sNS
 kubectl describe '[pod-name]' -n $k8sNS
+
+# Query service
+kubectl get svc -n $k8sNS
 ```
 
 [^wsl]:[You need to have WSL upfront](https://learn.microsoft.com/en-us/windows/wsl/)
