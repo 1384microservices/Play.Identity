@@ -17,18 +17,21 @@ spec:
         env:
         - name: ServiceSettings__MessageBroker
           value: "SERVICEBUS"
-        - name: MongoDbSettings__Host
-          value: ""
-        - name: MongoDbSettings__Port
-          value: ""
         - name: MongoDbSettings__ConnectionString
-          value: ""
-        - name: RabbitMQSettings__Host
-          value: ""
+          valueFrom:
+            secretKeyRef:
+              name: identity-secrets
+              key: cosmosdb-connectionstring
         - name: ServiceBusSettings__ConnectionString
-          value: ""
+          valueFrom:
+            secretKeyRef:
+              name: identity-secrets
+              key: servicebus-connectionstring
         - name: IdentitySettings__AdminUserPassword
-          value: ""
+          valueFrom:
+            secretKeyRef:
+              name: identity-secrets
+              key: admin-password
         resources:
           limits:
             memory: "128Mi"
