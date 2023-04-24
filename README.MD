@@ -127,4 +127,31 @@ dotnet nuget push ..\packages\Play.Identity.Contracts.$version.nupkg --api-key $
 ### Publish service container image
 TBD
 
+### Create K8S secrets
+```powershell
+# Create identity service namespace
+$k8sNS="identity"
+kubectl create namespace  $k8sNS
+
+# Configure identity service namespae
+$cosmosDbConnectionString="[YOUR MONGODB CONNECTION STRING]"
+$serviceBusConnectionString="[YOUR SB CONNECTION STRING]"
+$adminPassword="Pass@word1"
+
+kubectl create secret generic identity-secrets --from-literal=cosmosdb-connectionstring=$cosmosDbConnectionString --from-literal=servicebus-connectionstring=$serviceBusConnectionString --from-literal=admin-password=$adminPassword -n $k8sNS
+```
+
+### Create K8S service pod
+```powershell
+# Create pod
+kubectl apply -f .\kubernetes\identity.yaml -n $k8sNS
+
+# Query pod status
+kubectl get pods -n $k8sNS
+
+# Query logs
+kubectl logs '[pod-name]' -n $k8sNS
+kubectl describe '[pod-name]' -n $k8sNS
+```
+
 [^wsl]:[You need to have WSL upfront](https://learn.microsoft.com/en-us/windows/wsl/)
