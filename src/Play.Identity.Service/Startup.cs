@@ -45,32 +45,30 @@ public class Startup
             .Configure<IdentitySettings>(Configuration.GetSection(nameof(IdentitySettings)))
             .AddDefaultIdentity<ApplicationUser>()
             .AddRoles<ApplicationRole>()
-            .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name)
-        ;
+            .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name);
 
         services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>>();
 
         services.AddMassTransitWithMessageBroker(Configuration, retryConfigurator =>
-            {
-                retryConfigurator.Interval(3, TimeSpan.FromSeconds(5));
-                retryConfigurator.Ignore<InsufficientFundsException>();
-                retryConfigurator.Ignore<UnknownUserException>();
-            });
+        {
+            retryConfigurator.Interval(3, TimeSpan.FromSeconds(5));
+            retryConfigurator.Ignore<InsufficientFundsException>();
+            retryConfigurator.Ignore<UnknownUserException>();
+        });
 
         services.AddIdentityServer(opt =>
-            {
-                opt.Events.RaiseSuccessEvents = true;
-                opt.Events.RaiseFailureEvents = true;
-                opt.Events.RaiseErrorEvents = true;
-                opt.KeyManagement.KeyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            })
+        {
+            opt.Events.RaiseSuccessEvents = true;
+            opt.Events.RaiseFailureEvents = true;
+            opt.Events.RaiseErrorEvents = true;
+            opt.KeyManagement.KeyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        })
             .AddAspNetIdentity<ApplicationUser>()
             .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
             .AddInMemoryApiResources(identityServerSettings.ApiResources)
             .AddInMemoryClients(identityServerSettings.Clients)
             .AddInMemoryIdentityResources(identityServerSettings.Resources)
-            .AddDeveloperSigningCredential()
-        ;
+            .AddDeveloperSigningCredential();
 
         services.AddLocalApiAuthentication();
 
@@ -79,9 +77,11 @@ public class Startup
         services.AddHostedService<IdentitySeedHostedService>();
 
         services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
-            });
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
+        });
+
+        services.AddHealthChecks();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -90,8 +90,11 @@ public class Startup
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
+
             app.UseSwagger();
+
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Play.Identity.Service v1"));
+            
             app.UseCors(opt =>
             {
                 opt.WithOrigins(Configuration["AllowedOrigin"]);
@@ -101,17 +104,23 @@ public class Startup
         }
 
         app.UseStaticFiles();
+
         app.UseRouting();
+
         app.UseIdentityServer();
+
         app.UseAuthorization();
+
         app.UseCookiePolicy(new CookiePolicyOptions()
         {
             MinimumSameSitePolicy = SameSiteMode.Lax
         });
+
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
             endpoints.MapRazorPages();
+            endpoints.MapHealthChecks("/health");
         });
     }
 }
