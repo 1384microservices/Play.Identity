@@ -125,7 +125,20 @@ dotnet nuget push ..\packages\Play.Identity.Contracts.$version.nupkg --api-key $
 ```
 
 ### Publish service container image
-TBD
+```powershell
+# Create docker image
+$imageVersion="1.0.5"
+docker-compose build
+docker tag "play.identity:latest" "play.identity:${imageVersion}"
+
+$appName="playeconomy1384"
+$repositoryUrl="${appName}.azurecr.io"
+
+docker tag "play.identity:latest" "${repositoryUrl}/play.identity:${imageVersion}"
+
+az acr login --name $appName
+docker push "${repositoryUrl}/play.identity:${imageVersion}"
+```
 
 ### Create K8S secrets
 ```powershell

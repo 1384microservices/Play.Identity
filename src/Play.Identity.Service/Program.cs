@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Azure.Identity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Play.Identity.Service
 {
@@ -18,6 +15,15 @@ namespace Play.Identity.Service
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((ctx, cfgBuilder) =>
+                {
+                    if (ctx.HostingEnvironment.IsProduction())
+                    {
+                        var uri = new Uri("https://playeconomy1384.vault.azure.net/");
+                        var credentials = new DefaultAzureCredential();
+                        cfgBuilder.AddAzureKeyVault(uri, credentials);
+                    }
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
