@@ -146,12 +146,14 @@ docker push "${repositoryUrl}/play.identity:${imageVersion}"
 $k8sNS="identity"
 kubectl create namespace  $k8sNS
 
-# Configure identity service namespae
+# Configure identity service secrets
 $cosmosDbConnectionString="[YOUR MONGODB CONNECTION STRING]"
 $serviceBusConnectionString="[YOUR SB CONNECTION STRING]"
 $adminPassword="Pass@word1"
-
 kubectl create secret generic identity-secrets --from-literal=cosmosdb-connectionstring=$cosmosDbConnectionString --from-literal=servicebus-connectionstring=$serviceBusConnectionString --from-literal=admin-password=$adminPassword -n $k8sNS
+
+# Delete secrets
+kubectl delete secret -n $k8sNS identity-secrets
 ```
 
 ### Create K8S service pod
