@@ -10,7 +10,9 @@ spec:
     metadata:
       labels:
         app: identity
+        azure.workload.identity/use: "true"
     spec:
+      serviceAccountName: identity-serviceaccount
       containers:
       - name: identity
         image: playeconomy1384.azurecr.io/play.identity:1.0.2
@@ -61,3 +63,13 @@ spec:
   ports:
   - port: 80
     targetPort: 5002
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: identity-serviceaccount
+  annotations:
+    azure.workload.identity/client-id: 3c52e950-4116-402a-a03f-2623e560d890
+  labels:
+    azure.workload.identity/use: "true"
