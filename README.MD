@@ -127,7 +127,7 @@ dotnet nuget push ..\packages\Play.Identity.Contracts.$version.nupkg --api-key $
 ### Publish service container image
 ```powershell
 # Create docker image
-$imageVersion="1.0.5"
+$imageVersion="1.0.6"
 docker-compose build
 docker tag "play.identity:latest" "play.identity:${imageVersion}"
 
@@ -191,7 +191,7 @@ az keyvault set-policy -n $appName --secret-permissions get list --spn $identity
 $appName="playeconomy1384"
 $aksOIDIssuer=az aks show -n $appName -g $appName --query "oidcIssuerProfile.issuerUrl" -otsv
 
-az identity federated-credential create --name $k8sNS --identity-name $k8sNS --resource-group $appName --issuer $aksOIDIssuer --subject "system:serviceaccount:${k8sNS}:${k8sNS}--serviceaccount"
+az identity federated-credential create --name $k8sNS --identity-name $k8sNS --resource-group $appName --issuer $aksOIDIssuer --subject "system:serviceaccount:${k8sNS}:${k8sNS}-serviceaccount"
 ```
 
 
