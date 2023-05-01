@@ -127,7 +127,7 @@ dotnet nuget push ..\packages\Play.Identity.Contracts.$version.nupkg --api-key $
 ### Publish service container image
 ```powershell
 # Create docker image
-$imageVersion="1.0.6"
+$imageVersion="1.0.8"
 docker-compose build
 docker tag "play.identity:latest" "play.identity:${imageVersion}"
 
@@ -159,6 +159,7 @@ kubectl delete secret -n $k8sNS identity-secrets
 ### Create K8S service pod
 ```powershell
 # Create pod
+$k8sNS="identity"
 kubectl apply -f .\kubernetes\identity.yaml -n $k8sNS
 
 # Query pod status
