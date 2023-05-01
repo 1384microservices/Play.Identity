@@ -8,4 +8,4 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-  - playeconomy1384.northeurope.cloudapp.azure.com
+  - "playeconomy1384.northeurope.cloudapp.azure.com"

@@ -22,17 +22,22 @@ using System.IO;
 using System.Reflection;
 using Play.Common.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Play.Identity.Service;
 
 public class Startup
 {
-    public Startup(IConfiguration configuration)
+    private readonly IHostEnvironment environment;
+    public IConfiguration Configuration { get; }
+
+
+    public Startup(IConfiguration configuration, IHostEnvironment environment)
     {
         Configuration = configuration;
+        this.environment = environment;
     }
 
-    public IConfiguration Configuration { get; }
 
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
@@ -41,7 +46,7 @@ public class Startup
 
         var serviceSettings = Configuration.GetSection<ServiceSettings>();
         var mongoDbSettings = Configuration.GetSection<MongoDbSettings>();
-        var identityServerSettings = Configuration.GetSection<IdentityServerSettings>();
+
 
         services
             .Configure<IdentitySettings>(Configuration.GetSection(nameof(IdentitySettings)))
@@ -60,20 +65,7 @@ public class Startup
                 retryConfigurator.Ignore<UnknownUserException>();
             });
 
-        services.
-            AddIdentityServer(opt =>
-            {
-                opt.Events.RaiseSuccessEvents = true;
-                opt.Events.RaiseFailureEvents = true;
-                opt.Events.RaiseErrorEvents = true;
-                opt.KeyManagement.KeyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            })
-            .AddAspNetIdentity<ApplicationUser>()
-            .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
-            .AddInMemoryApiResources(identityServerSettings.ApiResources)
-            .AddInMemoryClients(identityServerSettings.Clients)
-            .AddInMemoryIdentityResources(identityServerSettings.Resources)
-            .AddDeveloperSigningCredential();
+        ConfigureIdentity(services);
 
         services
             .AddLocalApiAuthentication();
@@ -153,5 +145,35 @@ public class Startup
             endpoints.MapRazorPages();
             endpoints.MapPlayEconomyHealthChecks();
         });
+    }
+
+    private void ConfigureIdentity(IServiceCollection services)
+    {
+        var identityServerSettings = Configuration.GetSection<IdentityServerSettings>();
+
+        var builder = services.
+            AddIdentityServer(opt =>
+            {
+                opt.Events.RaiseSuccessEvents = true;
+                opt.Events.RaiseFailureEvents = true;
+                opt.Events.RaiseErrorEvents = true;
+                opt.KeyManagement.KeyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            })
+            .AddAspNetIdentity<ApplicationUser>()
+            .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
+            .AddInMemoryApiResources(identityServerSettings.ApiResources)
+            .AddInMemoryClients(identityServerSettings.Clients)
+            .AddInMemoryIdentityResources(identityServerSettings.Resources);
+
+        if (environment.IsProduction())
+        {
+            var identitySettings = Configuration.GetSection<IdentitySettings>();
+            var certificate = X509Certificate2.CreateFromPemFile(identitySettings.CertificateCerFilePath, identitySettings.CertificateKeyFilePath);
+            builder.AddSigningCredential(certificate);
+        }
+        else
+        {
+            builder.AddDeveloperSigningCredential();
+        }
     }
 }

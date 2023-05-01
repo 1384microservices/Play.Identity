@@ -127,7 +127,7 @@ dotnet nuget push ..\packages\Play.Identity.Contracts.$version.nupkg --api-key $
 ### Publish service container image
 ```powershell
 # Create docker image
-$imageVersion="1.0.9"
+$imageVersion="1.0.11"
 docker-compose build
 docker tag "play.identity:latest" "play.identity:${imageVersion}"
 
