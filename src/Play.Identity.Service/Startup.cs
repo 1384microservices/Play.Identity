@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Reflection;
 using Play.Common.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Play.Identity.Service;
 
@@ -92,11 +93,21 @@ public class Startup
         services
             .AddHealthChecks()
             .AddMongoDb();
+
+        services
+            .Configure<ForwardedHeadersOptions>(opt =>
+            {
+                opt.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                opt.KnownNetworks.Clear();
+                opt.KnownProxies.Clear();
+            });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        app.UseForwardedHeaders();
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
@@ -115,7 +126,8 @@ public class Startup
 
         // app.UseHttpsRedirection();
 
-        app.Use((ctx, next) => {
+        app.Use((ctx, next) =>
+        {
             var identitySettings = Configuration.GetSection<IdentitySettings>();
             ctx.Request.PathBase = new PathString(identitySettings.PathBase);
 
