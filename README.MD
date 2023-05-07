@@ -200,6 +200,12 @@ $k8sNS="identity"
 kubectl apply -f kubernetes\signing-cert.yaml -n $k8sNS
 ```
 
+### Install the helm chart
+```powershell
+$k8sNS="identity"
+helm install identity-service ./helm -f ./helm/values.yml -n $k8sNS
+```
+
 
 
 
