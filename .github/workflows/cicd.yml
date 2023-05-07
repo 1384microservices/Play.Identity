@@ -1,0 +1,24 @@
+name: CICD
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  package-and-publish-contracts:
+  
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Pack
+      run: dotnet pack ./src/Play.Identity.Contracts/ --configuration Release -p:PackageVersion=$version -p:RepositoryUrl=https://github.com/${{github.repository_owner}}/play.identity -o packages
