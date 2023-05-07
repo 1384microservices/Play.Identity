@@ -21,4 +21,4 @@ jobs:
       run: dotnet restore ./src/Play.Identity.Contracts/ --verbosity minimal
       
     - name: Pack
-      run: dotnet pack ./src/Play.Identity.Contracts/ --configuration Release -p:PackageVersion=$version -p:RepositoryUrl=https://github.com/${{github.repository_owner}}/play.identity -o packages
+      run: dotnet pack ./src/Play.Identity.Contracts/ --configuration Release -p:PackageVersion=1.0.0 -p:RepositoryUrl=https://github.com/${{github.repository_owner}}/play.identity -o packages
