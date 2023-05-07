@@ -202,8 +202,16 @@ kubectl apply -f kubernetes\signing-cert.yaml -n $k8sNS
 
 ### Install the helm chart
 ```powershell
+$helmUser=[guid]::Empty.Guid
+
+$appname="playeconomy1384"
+$registry="${appname}.azurecr.io"
+$helmPassword=az acr login --name $appname --expose-token --output tsv --query accessToken
+helm registry login $registry --username $helmUser --password $helmPassword
+
 $k8sNS="identity"
-helm install identity-service ./helm -f ./helm/values.yml -n $k8sNS
+$chartVersion="0.1.0"
+helm upgrade identity-service oci://$registry/helm/microservice --version $chartVersion -f ./helm/values.yaml -n $k8sNS --install
 ```
 
 
