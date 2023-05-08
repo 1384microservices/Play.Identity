@@ -214,34 +214,4 @@ $chartVersion="0.1.0"
 helm upgrade identity-service oci://$registry/helm/microservice --version $chartVersion -f ./helm/values.yaml -n $k8sNS --install
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 [^wsl]:[You need to have WSL upfront](https://learn.microsoft.com/en-us/windows/wsl/)
