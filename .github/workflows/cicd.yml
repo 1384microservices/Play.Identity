@@ -60,5 +60,4 @@ jobs:
         run: |
           dotnet nuget push out/*.nupkg \
           --skip-duplicate \
-          --no-symbols true \
-          --api-key ${{secrets.GITHUB_TOKEN}}
+          --no-symbols true
