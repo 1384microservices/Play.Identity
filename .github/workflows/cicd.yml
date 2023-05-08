@@ -56,6 +56,9 @@ jobs:
           -p:RepositoryUrl=https://github.com/${{github.repository_owner}}/play.identity \
           -o out
 
+      - name: DIR
+        run: dir
+
       - name: Publish
         run: |
           dotnet nuget push out/*.nupkg \
