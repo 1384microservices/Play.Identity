@@ -60,4 +60,6 @@ jobs:
         run: |
           dotnet nuget push out/*.nupkg \
           --skip-duplicate \
-          --no-symbols true
+          --no-symbols true \
+          --api-key ${{secrets.GITHUB_TOKEN}} \
+          --source https://nuget.pkg.github.com/${{github.repository_owner}}/index.json
