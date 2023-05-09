@@ -73,4 +73,6 @@ jobs:
         with:
           push: false
           tags: play.economy/identityservice:${{needs.generate-version.outputs.new_version}}
+          build-args: |
+            "GITHUB_PAT=${{secrets.GITHUB_TOKEN}}"
 
