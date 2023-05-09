@@ -4,9 +4,9 @@ on:
   push:
     branches: ["master"]
     
-permissions:
-  contents: write
-  packages: write
+#permissions:
+#  contents: write
+#  packages: write
 
 jobs:
   generate-version:
