@@ -58,9 +58,8 @@ jobs:
 
       - name: Publish
         run: |
-          dotnet nuget push out/*.nupkg \
-          --skip-duplicate \
-          --no-symbols true \
-          --api-key ${{secrets.GITHUB_TOKEN}} \
-          --source https://nuget.pkg.github.com/${{github.repository_owner}}/index.json
+          dotnet nuget push out/*.nupkg
+
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
         
