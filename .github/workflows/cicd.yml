@@ -3,10 +3,6 @@ name: CICD
 on:
   push:
     branches: ["master"]
-    
-#permissions:
-#  contents: write
-#  packages: write
 
 jobs:
   generate-version:
@@ -65,5 +61,8 @@ jobs:
           dotnet nuget push out/*.nupkg \
           --skip-duplicate \
           --no-symbols true \
-          --api-key ${{secrets.GITHUB_TOKEN}} \
+          --api-key $NUGET_AUTH_TOKEN \
           --source https://nuget.pkg.github.com/${{github.repository_owner}}/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        
