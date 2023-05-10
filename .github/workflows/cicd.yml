@@ -68,8 +68,17 @@ jobs:
     permissions:
       contents: read
       packages: read
+      id-token: write
+
     steps:
       - uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: Azure/login@v1.4.6
+        with:
+          client-id: ${{secrets.AZ_GHA_CLIENT_ID}}
+          tenant-id: ${{secrets.AZ_GHA_TENANT_ID}}
+          subscription-id: ${{secrets.AZ_GHA_SUBSCRIPTION_ID}}
 
       - name: Build and push docker image
         uses: docker/build-push-action@v4
@@ -78,5 +87,5 @@ jobs:
           tags: 
             playeconomy1384.azurecr.io/play.identity:${{needs.generate-version.outputs.new_version}}
           build-args: |
-            "GITHUB_PAT=${{secrets.GITHUB_TOKEN}}"
+            GITHUB_PAT=${{secrets.GITHUB_TOKEN}}
 
