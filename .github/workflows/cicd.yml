@@ -82,10 +82,13 @@ jobs:
           tenant-id: ${{secrets.AZURE_TENANT_ID}}
           subscription-id: ${{secrets.AZURE_SUB_ID}}
 
+      - name: ACR Login
+        run: az acr login --name ${{env.APP_NAME}}
+
       - name: Build and push docker image
         uses: docker/build-push-action@v4
         with:
-          # push: true
+          push: true
           tags: |
             playeconomy1384.azurecr.io/play.identity:${{needs.generate-version.outputs.new_version}}
           build-args: |
