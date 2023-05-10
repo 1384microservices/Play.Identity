@@ -75,7 +75,7 @@ jobs:
 
       - name: Azure Login
         # next step: v1.4.3
-        uses: azure/login@v1
+        uses: azure/login@v1.4.3
         with:
           client-id: ${{secrets.AZ_GHA_CLIENT_ID}}
           tenant-id: ${{secrets.AZ_GHA_TENANT_ID}}
@@ -84,7 +84,7 @@ jobs:
       - name: Build and push docker image
         uses: docker/build-push-action@v4
         with:
-          # push: false
+          push: false
           tags: |
             playeconomy1384.azurecr.io/play.identity:${{needs.generate-version.outputs.new_version}}
           build-args: |
