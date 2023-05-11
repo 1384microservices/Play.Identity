@@ -103,8 +103,14 @@ jobs:
       - name: Login to Helm registry
         shell: pwsh
         run: |
-          $helmUser=[guid]::Empty.Guid
-          $appname="playeconomy1384"
-          $registry="${appname}.azurecr.io"
-          $helmPassword=az acr login --name $appname --expose-token --output tsv --query accessToken
-          helm registry login $registry --username $helmUser --password $helmPassword
+          $helmUser="00000000-0000-0000-0000-000000000000"
+          $helmPassword=az acr login --name ${{env.APP_NAME}} --expose-token --output tsv --query accessToken
+          helm registry login "${{env.APP_NAME}}.azurecr.io" --username $helmUser --password $helmPassword
+
+      - name: Deploy helm chart
+        shell: pwsh
+        run: |
+          $registry="${{env.APP_NAME}}.azurecr.io"
+          $namespace="identity"
+          $chartVersion="${{needs.generate-version.outputs.new_version}}"
+          helm upgrade identity-service oci://$registry/helm/microservice --version $chartVersion -f ./helm/values.yaml -n $namespace --install
