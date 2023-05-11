@@ -65,8 +65,6 @@ jobs:
   build-and-publish-container:
     runs-on: ubuntu-latest
     needs: generate-version
-    env:
-      APP_NAME: playeconomy1384
     permissions:
       id-token: write
       contents: read
@@ -83,19 +81,19 @@ jobs:
           subscription-id: ${{secrets._AZURE_SUB_ID}}
 
       - name: ACR Login
-        run: az acr login --name ${{env.APP_NAME}}
+        run: az acr login --name ${{vars.AZ_ACR_REGISTRY_NAME}}
 
       - name: Build and push docker image
         uses: docker/build-push-action@v4
         with:
           push: true
           tags: |
-            playeconomy1384.azurecr.io/play.identity:${{needs.generate-version.outputs.new_version}}
+            ${{vars.AZ_ACR_REGISTRY_NAME}}.azurecr.io/play.identity:${{needs.generate-version.outputs.new_version}}
           build-args: |
             GITHUB_PAT=${{secrets.GITHUB_TOKEN}}
 
       - name: Get AKS credentials
-        run: az aks get-credentials --resource-group playeconomy1384 --name playeconomy1384
+        run: az aks get-credentials --resource-group ${{vars.AZ_RG_NAME}} --name ${{vars.AZ_AKS_CLUSTER_NAME}}
 
       - name: Install Helm
         uses: azure/setup-helm@v2.0
@@ -103,16 +101,13 @@ jobs:
       - name: Login to Helm registry
         shell: pwsh
         run: |
-          $helmUser="00000000-0000-0000-0000-000000000000"
-          $helmPassword=az acr login --name ${{env.APP_NAME}} --expose-token --output tsv --query accessToken
-          helm registry login "${{env.APP_NAME}}.azurecr.io" --username $helmUser --password $helmPassword
+          $helmPassword=az acr login --name ${{vars.AZ_ACR_REGISTRY_NAME}} --expose-token --output tsv --query accessToken
+          helm registry login "${{vars.AZ_ACR_REGISTRY_NAME}}.azurecr.io" --username ${{vars.HELM_USER_GUID}} --password $helmPassword
 
-      - name: Deploy helm chart
+      - name: Deploy Helm chart
         shell: pwsh
         run: |
-          $registry="${{env.APP_NAME}}.azurecr.io"
+          $registry="${{vars.AZ_ACR_REGISTRY_NAME}}.azurecr.io"
           $namespace="identity"
-          $serviceName="identity-service"
-          $chartVersion="0.1.0"
-        
-          helm upgrade $serviceName oci://$registry/helm/microservice --version $chartVersion -f helm/values.yaml -n $namespace --set image.tag=${{needs.generate-version.outputs.new_version}} --install --wait
+          $serviceName="identity-service"        
+          helm upgrade $serviceName oci://$registry/helm/microservice --version ${{vars.HELM_CHART_VERSION}} -f helm/values.yaml -n $namespace --set image.tag=${{needs.generate-version.outputs.new_version}} --install --wait
