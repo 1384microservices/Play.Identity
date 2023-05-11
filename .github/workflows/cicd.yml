@@ -1,4 +1,4 @@
-name: Play Identiy CICD
+name: Play.Identiy service CICD
 
 on:
   push:
