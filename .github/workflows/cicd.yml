@@ -116,8 +116,9 @@ jobs:
           $chartVersion="0.1.0"
 
           helm upgrade $serviceName oci://$registry/helm/microservice \
-          --version $chartVersion \
+          --version "$chartVersion" \
           -f helm/values.yaml \
           -n $namespace \
           --set image.tag=${{needs.generate-version.outputs.new_version}}
-          --install
+          --install \
+          --wait
