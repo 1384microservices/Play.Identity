@@ -94,3 +94,17 @@ jobs:
           build-args: |
             GITHUB_PAT=${{secrets.GITHUB_TOKEN}}
 
+      - name: Get AKS Creds
+        run: az aks get-credentials --resourcegroup playeconomy1384 --name playeconomy1384
+
+      - name: HElm tool installer
+        uses: azure/setup-helm@v2.0
+
+      - name: Login to Helm registry
+        shell: pwsh
+        run: |
+          $helmUser=[guid]::Empty.Guid
+          $appname="playeconomy1384"
+          $registry="${appname}.azurecr.io"
+          $helmPassword=az acr login --name $appname --expose-token --output tsv --query accessToken
+          helm registry login $registry --username $helmUser --password $helmPassword
