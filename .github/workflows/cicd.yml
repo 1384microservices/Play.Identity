@@ -81,7 +81,10 @@ jobs:
           subscription-id: ${{secrets._AZURE_SUB_ID}}
 
       - name: ACR Login
-        run: az acr login --name ${{vars.AZ_ACR_REGISTRY_NAME}}
+        shell: pwsh
+        run: |
+          az acr login `
+            --name ${{vars.AZ_ACR_REGISTRY_NAME}}
 
       - name: Build and push docker image
         uses: docker/build-push-action@v4
@@ -93,7 +96,11 @@ jobs:
             GITHUB_PAT=${{secrets.GITHUB_TOKEN}}
 
       - name: Get AKS credentials
-        run: az aks get-credentials --resource-group ${{vars.AZ_RG_NAME}} --name ${{vars.AZ_AKS_CLUSTER_NAME}}
+        shell: pwsh
+        run: |
+          az aks get-credentials `
+            --resource-group ${{vars.AZ_RG_NAME}} `
+            --name ${{vars.AZ_AKS_CLUSTER_NAME}}
 
       - name: Install Helm
         uses: azure/setup-helm@v2.0
@@ -101,8 +108,15 @@ jobs:
       - name: Login to Helm registry
         shell: pwsh
         run: |
-          $helmPassword=az acr login --name ${{vars.AZ_ACR_REGISTRY_NAME}} --expose-token --output tsv --query accessToken
-          helm registry login "${{vars.AZ_ACR_REGISTRY_NAME}}.azurecr.io" --username ${{vars.HELM_USER_GUID}} --password $helmPassword
+          $helmPassword=az acr login `
+            --name ${{vars.AZ_ACR_REGISTRY_NAME}} `
+            --expose-token `
+            --output tsv `
+            --query accessToken
+
+          helm registry login "${{vars.AZ_ACR_REGISTRY_NAME}}.azurecr.io" `
+            --username ${{vars.HELM_USER_GUID}} `
+            --password $helmPassword
 
       - name: Deploy Helm chart
         shell: pwsh
