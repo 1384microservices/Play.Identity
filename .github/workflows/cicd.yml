@@ -94,10 +94,10 @@ jobs:
           build-args: |
             GITHUB_PAT=${{secrets.GITHUB_TOKEN}}
 
-      - name: Get AKS Creds
+      - name: Get AKS credentials
         run: az aks get-credentials --resource-group playeconomy1384 --name playeconomy1384
 
-      - name: HElm tool installer
+      - name: Install Helm
         uses: azure/setup-helm@v2.0
 
       - name: Login to Helm registry
