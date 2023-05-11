@@ -95,7 +95,7 @@ jobs:
             GITHUB_PAT=${{secrets.GITHUB_TOKEN}}
 
       - name: Get AKS Creds
-        run: az aks get-credentials --resourcegroup playeconomy1384 --name playeconomy1384
+        run: az aks get-credentials --resource-group playeconomy1384 --name playeconomy1384
 
       - name: HElm tool installer
         uses: azure/setup-helm@v2.0
