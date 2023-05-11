@@ -44,19 +44,22 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Restore dependencies
+        shell: pwsh
         run: |
-          dotnet restore src/Play.Identity.Contracts/ \
-          --verbosity minimal
+          dotnet restore src/Play.Identity.Contracts/ `
+            --verbosity minimal
 
       - name: Pack
+        shell: pwsh
         run: |
-          dotnet pack src/Play.Identity.Contracts/ \
-          --configuration Release \
-          -p:PackageVersion=${{needs.generate-version.outputs.new_version}} \
-          -p:RepositoryUrl=https://github.com/${{github.repository_owner}}/play.identity \
-          -o out
+          dotnet pack src/Play.Identity.Contracts/ `
+            --configuration Release `
+            -p:PackageVersion=${{needs.generate-version.outputs.new_version}} `
+            -p:RepositoryUrl=https://github.com/${{github.repository_owner}}/play.identity `
+            -o out
 
       - name: Publish
+        shell: pwsh
         run: |
           dotnet nuget push out/*.nupkg
         env:
