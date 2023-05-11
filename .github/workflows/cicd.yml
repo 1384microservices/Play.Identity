@@ -45,7 +45,7 @@ jobs:
 
       - name: Restore dependencies
         run: |
-          dotnet restore ./src/Play.Identity.Contracts/ \
+          dotnet restore src/Play.Identity.Contracts/ \
           --verbosity minimal
 
       - name: Pack
@@ -112,5 +112,12 @@ jobs:
         run: |
           $registry="${{env.APP_NAME}}.azurecr.io"
           $namespace="identity"
-          $chartVersion="${{needs.generate-version.outputs.new_version}}"
-          helm upgrade identity-service oci://$registry/helm/microservice --version $chartVersion -f ./helm/values.yaml -n $namespace --install
+          $serviceName="identity-service"
+          $chartVersion="0.1.0"
+
+          helm upgrade $serviceName oci://$registry/helm/microservice \
+          --version $chartVersion \
+          -f helm/values.yaml \
+          -n $namespace \
+          --set image.tag=${{needs.generate-version.outputs.new_version}}
+          --install
