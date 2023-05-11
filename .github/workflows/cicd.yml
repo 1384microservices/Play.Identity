@@ -111,9 +111,9 @@ jobs:
           $namespace="identity"
           $serviceName="identity-service"        
           helm upgrade $serviceName oci://$registry/helm/microservice `
-          --version ${{vars.HELM_CHART_VERSION}} `
-          -f helm/values.yaml `
-          -n $namespace `
-          --set image.tag=${{needs.generate-version.outputs.new_version}} `
-          --install `
-          --wait
+            --version ${{vars.HELM_CHART_VERSION}} `
+            -f helm/values.yaml `
+            -n $namespace `
+            --set image.tag=${{needs.generate-version.outputs.new_version}} `
+            --install `
+            --wait
