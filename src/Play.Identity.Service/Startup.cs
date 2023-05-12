@@ -23,6 +23,7 @@ using System.Reflection;
 using Play.Common.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Security.Cryptography.X509Certificates;
+using Play.Common.Logging;
 
 namespace Play.Identity.Service;
 
@@ -54,11 +55,9 @@ public class Startup
             .AddRoles<ApplicationRole>()
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name);
 
-        services
-            .AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>>();
+        services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>>();
 
-        services
-            .AddMassTransitWithMessageBroker(Configuration, retryConfigurator =>
+        services.AddMassTransitWithMessageBroker(Configuration, retryConfigurator =>
             {
                 retryConfigurator.Interval(3, TimeSpan.FromSeconds(5));
                 retryConfigurator.Ignore<InsufficientFundsException>();
@@ -67,32 +66,27 @@ public class Startup
 
         ConfigureIdentity(services);
 
-        services
-            .AddLocalApiAuthentication();
+        services.AddLocalApiAuthentication();
 
-        services
-            .AddControllers();
+        services.AddControllers();
 
-        services
-            .AddHostedService<IdentitySeedHostedService>();
+        services.AddHostedService<IdentitySeedHostedService>();
 
-        services
-            .AddSwaggerGen(c =>
+        services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
             });
 
-        services
-            .AddHealthChecks()
-            .AddMongoDb();
+        services.AddHealthChecks().AddMongoDb();
 
-        services
-            .Configure<ForwardedHeadersOptions>(opt =>
+        services.Configure<ForwardedHeadersOptions>(opt =>
             {
                 opt.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
                 opt.KnownNetworks.Clear();
                 opt.KnownProxies.Clear();
             });
+
+        services.AddSeqLogging(Configuration.GetSeqSettings());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
