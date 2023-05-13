@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using System.Security.Cryptography.X509Certificates;
 using Play.Common.Logging;
 using MassTransit;
+using Play.Common.OpenTelemetry;
 
 namespace Play.Identity.Service;
 
@@ -55,9 +56,11 @@ public class Startup
             .AddRoles<ApplicationRole>()
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(mongoDbSettings.ConnectionString, serviceSettings.Name);
 
-        services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>>();
+        services
+            .AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>>();
 
-        services.AddMassTransitWithMessageBroker(Configuration, retryConfigurator =>
+        services
+            .AddMassTransitWithMessageBroker(Configuration, retryConfigurator =>
             {
                 retryConfigurator.Interval(3, TimeSpan.FromSeconds(5));
                 retryConfigurator.Ignore<InsufficientFundsException>();
@@ -66,27 +69,38 @@ public class Startup
 
         ConfigureIdentity(services);
 
-        services.AddLocalApiAuthentication();
+        services
+            .AddLocalApiAuthentication();
 
-        services.AddControllers();
+        services
+            .AddControllers();
 
-        services.AddHostedService<IdentitySeedHostedService>();
+        services
+            .AddHostedService<IdentitySeedHostedService>();
 
-        services.AddSwaggerGen(c =>
+        services
+            .AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Identity.Service", Version = "v1" });
             });
 
-        services.AddHealthChecks().AddMongoDb();
+        services
+            .AddHealthChecks()
+            .AddMongoDb();
 
-        services.Configure<ForwardedHeadersOptions>(opt =>
+        services.
+            Configure<ForwardedHeadersOptions>(opt =>
             {
                 opt.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
                 opt.KnownNetworks.Clear();
                 opt.KnownProxies.Clear();
             });
 
-        services.AddSeqLogging(Configuration.GetSeqSettings());
+        services
+            .AddSeqLogging(Configuration.GetSeqSettings());
+
+        services
+            .AddTracing(Configuration.GetServiceSettings(), Configuration.GetSection<JaegerSettings>());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -97,11 +111,8 @@ public class Startup
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
-
             app.UseSwagger();
-
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Play.Identity.Service v1"));
-
             app.UseCors(opt =>
             {
                 opt.WithOrigins(Configuration["AllowedOrigin"]);
@@ -109,8 +120,6 @@ public class Startup
                 opt.AllowAnyMethod();
             });
         }
-
-        // app.UseHttpsRedirection();
 
         app.Use((ctx, next) =>
         {
@@ -121,18 +130,13 @@ public class Startup
         });
 
         app.UseStaticFiles();
-
         app.UseRouting();
-
         app.UseIdentityServer();
-
         app.UseAuthorization();
-
         app.UseCookiePolicy(new CookiePolicyOptions()
         {
             MinimumSameSitePolicy = SameSiteMode.Lax
         });
-
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
