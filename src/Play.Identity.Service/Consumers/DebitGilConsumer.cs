@@ -13,9 +13,10 @@ public class DebitGilConsumer : IConsumer<DebitGil>
     private readonly UserManager<ApplicationUser> userManager;
     private readonly ILogger<DebitGilConsumer> logger;
 
-    public DebitGilConsumer(UserManager<ApplicationUser> userManager)
+    public DebitGilConsumer(UserManager<ApplicationUser> userManager, ILogger<DebitGilConsumer> logger)
     {
         this.userManager = userManager;
+        this.logger = logger;
     }
 
     public async Task Consume(ConsumeContext<DebitGil> context)
