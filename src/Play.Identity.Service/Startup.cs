@@ -15,7 +15,6 @@ using Play.Identity.Service.HostedServices;
 using Play.Identity.Service.Settings;
 using Microsoft.AspNetCore.Identity;
 using Play.Common.MassTransit;
-using GreenPipes;
 using Play.Identity.Service.Exceptions;
 using Microsoft.AspNetCore.Http;
 using System.IO;
@@ -24,6 +23,7 @@ using Play.Common.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Security.Cryptography.X509Certificates;
 using Play.Common.Logging;
+using MassTransit;
 
 namespace Play.Identity.Service;
 
