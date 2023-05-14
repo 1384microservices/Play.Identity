@@ -97,10 +97,9 @@ public class Startup
             });
 
         services
-            .AddSeqLogging(Configuration.GetSeqSettings());
-
-        services
-            .AddTracing(Configuration.GetServiceSettings(), Configuration.GetSection<JaegerSettings>());
+            .AddSeqLogging(Configuration.GetSeqSettings())
+            .AddTracing(Configuration.GetServiceSettings(), Configuration.GetSection<JaegerSettings>())
+            .AddMetrics(Configuration.GetServiceSettings());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -130,6 +129,7 @@ public class Startup
         });
 
         app.UseStaticFiles();
+        app.UseOpenTelemetryPrometheusScrapingEndpoint();
         app.UseRouting();
         app.UseIdentityServer();
         app.UseAuthorization();
